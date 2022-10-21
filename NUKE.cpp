@@ -23,7 +23,7 @@
 #include <ESPAsyncTCP.h>
 #endif
 #include <ESPAsyncWebServer.h>
-
+#include <Arduino.h>
 // Replace with your network credentials
 const char* ssid = "CHERNOBYL_2G";
 //const char* ssid = "DinossauroBebado";
@@ -31,6 +31,14 @@ const char* password = "guithafer520";
 //const char* password = "3141592653589";
 
 const char* PARAM_INPUT_1 = "state";
+
+IPAddress local_IP(192, 168, 1, 184);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 1, 1);
+
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);   //optional
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 const int output = 0;
 const int buttonPin = 2;
@@ -51,7 +59,7 @@ AsyncWebServer server(80);
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
-  <title>Dinossauro Bêbado</title>
+  <title>Dinossauro Bebado</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
@@ -67,7 +75,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   </style>
 </head>
 <body>
-  <h2>Dinossauro Bêbado</h2>
+  <h2>Dinossauro Bebado</h2>
   %BUTTONPLACEHOLDER%
 <script>function toggleCheckbox(element) {
   var xhr = new XMLHttpRequest();
@@ -102,18 +110,6 @@ setInterval(function ( ) {
 </html>
 )rawliteral";
 
-// Replaces placeholder with button section in your web page
-String processor(const String& var){
-  //Serial.println(var);
-  if(var == "BUTTONPLACEHOLDER"){
-    String buttons ="";
-    String outputStateValue = outputState();
-    buttons+= "<h4> A luz está : <span id=\"outputState\"></span></h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"output\" " + outputStateValue + "><span class=\"slider\"></span></label>";
-    return buttons;
-  }
-  return String();
-}
-
 String outputState(){
   if(digitalRead(output)){
     return "checked";
@@ -123,14 +119,32 @@ String outputState(){
   }
   return "";
 }
+// Replaces placeholder with button section in your web page
+String processor(const String& var){
+  //Serial.println(var);
+  if(var == "BUTTONPLACEHOLDER"){
+    String buttons ="";
+    String outputStateValue = outputState();
+    buttons+= "<h4> A luz esta : <span id=\"outputState\"></span></h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"output\" " + outputStateValue + "><span class=\"slider\"></span></label>";
+    return buttons;
+  }
+  return String();
+}
+
 
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(9600);
 
+  ESP.wdtEnable(5000);
+
   pinMode(output, OUTPUT);
   digitalWrite(output, LOW);
   pinMode(buttonPin, INPUT);
+
+   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
   
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -175,6 +189,7 @@ void setup(){
 }
   
 void loop() {
+  ESP.wdtFeed();
   // read the state of the switch into a local variable:
   int reading = digitalRead(buttonPin);
 
