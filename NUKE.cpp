@@ -32,9 +32,9 @@ const char* password = "guithafer520";
 
 const char* PARAM_INPUT_1 = "state";
 
-IPAddress local_IP(192, 168, 1, 184);
+IPAddress local_IP(192, 168, 18, 184);
 // Set your Gateway IP address
-IPAddress gateway(192, 168, 1, 1);
+IPAddress gateway(192, 168, 18, 1);
 
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);   //optional
